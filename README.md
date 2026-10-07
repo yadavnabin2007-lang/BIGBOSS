@@ -1,2 +1,1 @@
-# BIGBOSS
-lolipoop
+https://bigbosscontrolcentre.netlify.app/
