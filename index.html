@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BIGG BOSS — Digital Command Center</title>
+  <meta name="description" content="Official Big Boss Real-Time House Command & Control System for managing contestants, tasks, scores, nominations, captaincy, and evictions.">
+  
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Outfit:wght@300;400;500;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-theme">
+  <!-- Top Live Ticker Bar -->
+  <div class="top-announcement-ticker">
+    <div class="ticker-badge"><i class="fa-solid fa-bullhorn"></i> BIGG BOSS LIVE</div>
+    <div class="ticker-content" id="tickerContent">
+      "Bigg Boss chahte hain ki sabhi sadasya turant living area mein ekathha ho jayein!" • Welcome to Bigg Boss Digital Command Center v4.5 • Task Timer Active
+    </div>
+    <div class="ticker-time" id="liveClock">00:00:00 IST</div>
+  </div>
+
+  <!-- App Container -->
+  <div class="app-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand-header">
+        <img src="assets/logo.jpg" alt="Bigg Boss Logo" class="brand-logo">
+        <div class="brand-text">
+          <span class="brand-title">BIGG BOSS</span>
+          <span class="brand-subtitle">COMMAND CENTER</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <button class="nav-btn active" data-tab="dashboard">
+          <i class="fa-solid fa-gauge-high"></i> <span>Dashboard HUD</span>
+        </button>
+        <button class="nav-btn" data-tab="contestants">
+          <i class="fa-solid fa-users"></i> <span>Contestants</span> <span class="nav-badge" id="navActiveCount">0</span>
+        </button>
+        <button class="nav-btn" data-tab="leaderboard">
+          <i class="fa-solid fa-trophy"></i> <span>Live Leaderboard</span>
+        </button>
+        <button class="nav-btn" data-tab="danger-zone">
+          <i class="fa-solid fa-biohazard"></i> <span>Danger Zone</span> <span class="nav-badge alert-badge" id="navDangerCount">0</span>
+        </button>
+        <button class="nav-btn" data-tab="tasks">
+          <i class="fa-solid fa-list-check"></i> <span>Task Manager</span> <span class="nav-badge" id="navPendingTasks">0</span>
+        </button>
+        <button class="nav-btn" data-tab="announcements">
+          <i class="fa-solid fa-podcast"></i> <span>Announcements</span>
+        </button>
+        <button class="nav-btn" data-tab="cctv">
+          <i class="fa-solid fa-video"></i> <span>CCTV Surveillance</span>
+        </button>
+        <button class="nav-btn" data-tab="evicted">
+          <i class="fa-solid fa-door-open"></i> <span>Eviction Wall</span> <span class="nav-badge muted-badge" id="navEvictedCount">0</span>
+        </button>
+        <button class="nav-btn" data-tab="activity-log">
+          <i class="fa-solid fa-clock-rotate-left"></i> <span>Audit Log</span>
+        </button>
+      </nav>
+
+      <!-- Quick Soundboard Widgets in Sidebar -->
+      <div class="sidebar-soundboard">
+        <div class="soundboard-title"><i class="fa-solid fa-sliders"></i> QUICK AUDIO EFFECTS</div>
+        <div class="soundboard-grid">
+          <button class="sfx-btn" onclick="playAudioEffect('gong')" title="Bigg Boss Gong Chime"><i class="fa-solid fa-bell"></i> Gong</button>
+          <button class="sfx-btn" onclick="playAudioEffect('siren')" title="Emergency Siren"><i class="fa-solid fa-lightbulb"></i> Siren</button>
+          <button class="sfx-btn" onclick="playAudioEffect('buzzer')" title="Task Fail Buzzer"><i class="fa-solid fa-circle-xmark"></i> Buzzer</button>
+          <button class="sfx-btn" onclick="playAudioEffect('applause')" title="Victory Fanfare"><i class="fa-solid fa-hands-clapping"></i> Fanfare</button>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <button class="btn-secondary full-width" onclick="resetToDemoData()"><i class="fa-solid fa-rotate-left"></i> Reset Demo Data</button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top Action Bar -->
+      <header class="top-header">
+        <div class="header-left">
+          <h1 class="page-title" id="currentPageTitle"><i class="fa-solid fa-gauge-high"></i> House Command HUD</h1>
+          <span class="status-indicator live"><span class="pulse-dot"></span> REALTIME MONITORED</span>
+        </div>
+
+        <div class="header-right">
+          <!-- Quick Timer Display -->
+          <div class="header-timer-widget" id="headerTimerWidget">
+            <i class="fa-solid fa-stopwatch gold-icon"></i>
+            <span class="timer-digits" id="miniTimerDisplay">00:00</span>
+            <button class="btn-xs btn-gold" onclick="toggleMainTimer()"><i class="fa-solid fa-play" id="miniPlayIcon"></i></button>
+          </div>
+
+          <!-- Quick Announce Trigger -->
+          <button class="btn-primary glow-red" onclick="openAnnouncementModal()">
+            <i class="fa-solid fa-microphone-lines"></i> Speak Announcement
+          </button>
+
+          <!-- Quick Add Contestant -->
+          <button class="btn-secondary" onclick="openAddContestantModal()">
+            <i class="fa-solid fa-user-plus"></i> + Add Contestant
+          </button>
+        </div>
+      </header>
+
+      <!-- TAB 1: DASHBOARD HUD -->
+      <section class="tab-pane active" id="tab-dashboard">
+        <!-- Live KPI Stats Bar -->
+        <div class="stats-grid">
+          <div class="stat-card gold-border">
+            <div class="stat-icon"><i class="fa-solid fa-crown"></i></div>
+            <div class="stat-info">
+              <span class="stat-label">House Captain</span>
+              <h3 class="stat-value gold-text" id="statCaptain">None</h3>
+              <span class="stat-sub" id="statCaptainSub">Immunity Granted</span>
+            </div>
+          </div>
+
+          <div class="stat-card cyan-border">
+            <div class="stat-icon"><i class="fa-solid fa-trophy"></i></div>
+            <div class="stat-info">
+              <span class="stat-label">Top Scorer</span>
+              <h3 class="stat-value cyan-text" id="statTopScorer">--</h3>
+              <span class="stat-sub" id="statTopScorePts">0 pts</span>
+            </div>
+          </div>
+
+          <div class="stat-card red-border">
+            <div class="stat-icon"><i class="fa-solid fa-biohazard"></i></div>
+            <div class="stat-info">
+              <span class="stat-label">In Danger Zone</span>
+              <h3 class="stat-value red-text" id="statDangerCount">0</h3>
+              <span class="stat-sub">Nominated for Eviction</span>
+            </div>
+          </div>
+
+          <div class="stat-card green-border">
+            <div class="stat-icon"><i class="fa-solid fa-user-check"></i></div>
+            <div class="stat-info">
+              <span class="stat-label">Active Housemates</span>
+              <h3 class="stat-value green-text" id="statActiveCount">0</h3>
+              <span class="stat-sub" id="statEvictedSub">0 Evicted</span>
+            </div>
+          </div>
+
+          <div class="stat-card purple-border">
+            <div class="stat-icon"><i class="fa-solid fa-fire"></i></div>
+            <div class="stat-info">
+              <span class="stat-label">Drama & Chaos Index</span>
+              <h3 class="stat-value purple-text" id="statDramaMeter">75%</h3>
+              <div class="drama-bar-bg"><div class="drama-bar-fill" id="statDramaBar" style="width: 75%"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Master Task Countdown Timer Control Card -->
+        <div class="card timer-master-card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-clock gold-text"></i> Master Bigg Boss Task Countdown Timer</h3>
+            <span class="badge badge-gold" id="timerStatusBadge">IDLE</span>
+          </div>
+          <div class="card-body timer-body">
+            <div class="timer-display-main" id="mainTimerDisplay">15:00</div>
+            <div class="timer-controls">
+              <button class="btn-timer btn-start" id="btnTimerStart" onclick="startTimer()"><i class="fa-solid fa-play"></i> START</button>
+              <button class="btn-timer btn-pause" onclick="pauseTimer()"><i class="fa-solid fa-pause"></i> PAUSE</button>
+              <button class="btn-timer btn-reset" onclick="resetTimer()"><i class="fa-solid fa-rotate"></i> RESET</button>
+              <button class="btn-timer btn-add" onclick="addTimerMinutes(1)">+1 MIN</button>
+              <button class="btn-timer btn-add" onclick="addTimerMinutes(5)">+5 MIN</button>
+              <button class="btn-timer btn-add" onclick="addTimerMinutes(10)">+10 MIN</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dashboard Two-Column Layout -->
+        <div class="dash-columns">
+          <!-- Left Column: Danger Zone Preview & Captain Control -->
+          <div class="dash-left">
+            <div class="card danger-card">
+              <div class="card-header border-red">
+                <h3><i class="fa-solid fa-biohazard red-text"></i> Danger Zone — Nominated for Eviction</h3>
+                <button class="btn-xs btn-red" onclick="switchTab('danger-zone')">Manage Danger Zone &rarr;</button>
+              </div>
+              <div class="card-body">
+                <div class="danger-preview-list" id="dashDangerList">
+                  <!-- Populated by JS -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Team Point Comparison HUD -->
+            <div class="card">
+              <div class="card-header">
+                <h3><i class="fa-solid fa-shield-halved cyan-text"></i> Team Standings & Rivalry</h3>
+              </div>
+              <div class="card-body" id="teamStandingsWidget">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Top 5 Live Leaderboard & Recent Activity -->
+          <div class="dash-right">
+            <div class="card">
+              <div class="card-header">
+                <h3><i class="fa-solid fa-ranking-star gold-text"></i> Top Housemates Leaderboard</h3>
+                <button class="btn-xs btn-gold" onclick="switchTab('leaderboard')">Full Leaderboard &rarr;</button>
+              </div>
+              <div class="card-body">
+                <table class="hud-table">
+                  <thead>
+                    <tr>
+                      <th>Rank</th>
+                      <th>Contestant</th>
+                      <th>Team</th>
+                      <th>Points</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dashTopLeaderboardBody">
+                    <!-- Populated by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3><i class="fa-solid fa-bolt-lightning text-yellow"></i> Recent House Events</h3>
+              </div>
+              <div class="card-body">
+                <ul class="activity-feed-mini" id="dashActivityFeed">
+                  <!-- Populated by JS -->
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: CONTESTANT MANAGEMENT -->
+      <section class="tab-pane" id="tab-contestants">
+        <div class="toolbar">
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="contestantSearchInput" placeholder="Search by name, team, or status..." oninput="renderContestants()">
+          </div>
+
+          <div class="filter-group">
+            <select id="teamFilter" onchange="renderContestants()">
+              <option value="ALL">All Teams</option>
+              <option value="Team Alpha">Team Alpha</option>
+              <option value="Team Omega">Team Omega</option>
+              <option value="Team Renegade">Team Renegade</option>
+            </select>
+
+            <select id="statusFilter" onchange="renderContestants()">
+              <option value="ALL">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="captain">Captain</option>
+              <option value="immune">Immune</option>
+              <option value="nominated">Nominated</option>
+              <option value="evicted">Evicted</option>
+            </select>
+          </div>
+
+          <button class="btn-primary" onclick="openAddContestantModal()">
+            <i class="fa-solid fa-user-plus"></i> Add New Contestant
+          </button>
+        </div>
+
+        <div class="contestants-grid" id="contestantsGrid">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- TAB 3: LIVE LEADERBOARD -->
+      <section class="tab-pane" id="tab-leaderboard">
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-trophy gold-text"></i> Official House Live Leaderboard</h3>
+            <div class="leaderboard-actions">
+              <button class="btn-xs btn-secondary" onclick="exportLeaderboard()"><i class="fa-solid fa-download"></i> Export Ranks</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="podium-section" id="podiumSection">
+              <!-- Top 3 Podium render by JS -->
+            </div>
+
+            <table class="leaderboard-table">
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Avatar & Contestant</th>
+                  <th>Team</th>
+                  <th>Role / Persona</th>
+                  <th>Points</th>
+                  <th>Status Badges</th>
+                  <th>Quick Point Control</th>
+                </tr>
+              </thead>
+              <tbody id="fullLeaderboardBody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: DANGER ZONE & NOMINATIONS -->
+      <section class="tab-pane" id="tab-danger-zone">
+        <div class="danger-header-banner">
+          <div class="danger-banner-info">
+            <h2><i class="fa-solid fa-biohazard red-text"></i> THE DANGER ZONE & NOMINATIONS</h2>
+            <p>Contestants listed here are up for public eviction. Manage nomination votes, grant immunity, or execute eviction.</p>
+          </div>
+          <div class="danger-banner-actions">
+            <button class="btn-primary glow-red" onclick="openNominationProcessModal()">
+              <i class="fa-solid fa-gavel"></i> Open Confession Nomination Room
+            </button>
+            <button class="btn-secondary" onclick="simulatePublicEvictionVote()">
+              <i class="fa-solid fa-chart-pie"></i> Run Public Eviction Poll Simulator
+            </button>
+          </div>
+        </div>
+
+        <div class="card danger-full-card">
+          <div class="card-header border-red">
+            <h3><i class="fa-solid fa-triangle-exclamation red-text"></i> Currently Nominated Contestants (<span id="dangerZoneCountText">0</span>)</h3>
+          </div>
+          <div class="card-body">
+            <div class="danger-cards-grid" id="dangerZoneGrid">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Nomination Stats Summary -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-clipboard-list"></i> Full House Nomination Breakdown</h3>
+          </div>
+          <div class="card-body">
+            <table class="hud-table">
+              <thead>
+                <tr>
+                  <th>Contestant</th>
+                  <th>Team</th>
+                  <th>Immunity Status</th>
+                  <th>Nomination Votes Received</th>
+                  <th>Current Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="nominationBreakdownBody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: TASK MANAGER -->
+      <section class="tab-pane" id="tab-tasks">
+        <div class="toolbar">
+          <div class="toolbar-title">
+            <h2><i class="fa-solid fa-list-check gold-text"></i> House Task Command Center</h2>
+          </div>
+          <div class="toolbar-actions">
+            <button class="btn-secondary" onclick="addPresetTask('ration')">+ Add Ration Task</button>
+            <button class="btn-secondary" onclick="addPresetTask('captaincy')">+ Add Captaincy Task</button>
+            <button class="btn-secondary" onclick="addPresetTask('luxury')">+ Add Luxury Budget Task</button>
+            <button class="btn-primary" onclick="openCreateTaskModal()">+ Custom Task</button>
+          </div>
+        </div>
+
+        <div class="tasks-grid" id="tasksGrid">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- TAB 6: ANNOUNCEMENT SYSTEM & VOICE CONTROL -->
+      <section class="tab-pane" id="tab-announcements">
+        <div class="announcement-dashboard">
+          <div class="card announce-trigger-card">
+            <div class="card-header border-red">
+              <h3><i class="fa-solid fa-bullhorn red-text"></i> Broadcast Big Boss Voice Announcement</h3>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label for="announceVoicePreset">Select Voice Preset Announcement:</label>
+                <select id="announceVoicePreset" onchange="fillAnnouncementPreset(this.value)">
+                  <option value="">-- Choose Preset Announcement --</option>
+                  <option value="Bigg Boss chahte hain ki sabhi sadasya abhi ke abhi living area mein aayein!">🎙️ Living Area Assembly</option>
+                  <option value="WARNING! House rule violation detected! Speaking in English or sleeping in daytime is strictly prohibited!">⚠️ Rule Violation Warning</option>
+                  <option value="Captaincy task begins NOW! Contestants get ready in the activity zone!">🏆 Captaincy Task Start</option>
+                  <option value="Ration vault is now LOCKED due to continuous rule breaking!">🔒 Ration Vault Lockdown</option>
+                  <option value=" Bigg Boss aadesh dete hain ki Captain housemates ki duty division karein!">👑 Captain Duty Order</option>
+                  <option value="Eviction process is beginning! All danger zone contestants stand near the exit door!">🚪 Eviction Ceremony Warning</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="announceCustomText">Custom Announcement Message:</label>
+                <textarea id="announceCustomText" rows="4" placeholder="Type what Bigg Boss will announce... (Speech Synth will read this aloud in authoritative voice!)">Bigg Boss chahte hain ki sabhi sadasya living area mein ekathha ho jayein!</textarea>
+              </div>
+
+              <div class="announce-options">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="announceVoiceSynth" checked> Enable Voice Audio Synthesis (Text to Speech)
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" id="announceChime" checked> Play Warning Siren / Gong
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" id="announceFlash" checked> Flash Visual Alert Banner Overlay
+                </label>
+              </div>
+
+              <div class="announce-btn-group">
+                <button class="btn-primary glow-red btn-lg" onclick="triggerBroadcastAnnouncement()">
+                  <i class="fa-solid fa-podcast"></i> BROADCAST ANNOUNCEMENT TO HOUSE
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Announcement Log History -->
+          <div class="card">
+            <div class="card-header">
+              <h3><i class="fa-solid fa-clock-rotate-left"></i> Announcement Transmission History</h3>
+            </div>
+            <div class="card-body">
+              <ul class="announcement-history-list" id="announcementHistoryList">
+                <!-- Populated by JS -->
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 7: CCTV SURVEILLANCE FEED -->
+      <section class="tab-pane" id="tab-cctv">
+        <div class="cctv-header-bar">
+          <h2><i class="fa-solid fa-video red-text"></i> LIVE HOUSE CCTV SURVEILLANCE FEED</h2>
+          <span class="badge badge-red pulse"><i class="fa-solid fa-record-vinyl"></i> 4 CAMERAS RECORDING LIVE</span>
+        </div>
+
+        <div class="cctv-grid">
+          <div class="cctv-screen">
+            <div class="cctv-overlay">
+              <span class="cam-tag">CAM 01 — LIVING AREA</span>
+              <span class="rec-dot">REC ●</span>
+            </div>
+            <div class="cctv-viewport living-room">
+              <div class="cctv-sim-content">
+                <div class="housemate-dot" style="top: 30%; left: 40%;"><span>Karan</span></div>
+                <div class="housemate-dot" style="top: 50%; left: 60%;"><span>Tejasswi</span></div>
+                <div class="housemate-dot" style="top: 70%; left: 25%;"><span>Gautam</span></div>
+                <div class="cctv-subtext">Huddle near main sofa • Intense debate underway</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="cctv-screen">
+            <div class="cctv-overlay">
+              <span class="cam-tag">CAM 02 — KITCHEN & RATION VAULT</span>
+              <span class="rec-dot">REC ●</span>
+            </div>
+            <div class="cctv-viewport kitchen">
+              <div class="cctv-sim-content">
+                <div class="housemate-dot" style="top: 40%; left: 30%;"><span>Rubina</span></div>
+                <div class="housemate-dot" style="top: 60%; left: 70%;"><span>Asim</span></div>
+                <div class="cctv-subtext">Cooking meal • Luxury budget discussions</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="cctv-screen">
+            <div class="cctv-overlay">
+              <span class="cam-tag">CAM 03 — CONFESSION ROOM</span>
+              <span class="rec-dot">REC ●</span>
+            </div>
+            <div class="cctv-viewport confession">
+              <div class="cctv-sim-content">
+                <div class="housemate-dot gold-dot" style="top: 50%; left: 50%;"><span>Sidharth</span></div>
+                <div class="cctv-subtext">Confession Throne Occupied</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="cctv-screen">
+            <div class="cctv-overlay">
+              <span class="cam-tag">CAM 04 — GARDEN & ACTIVITY ZONE</span>
+              <span class="rec-dot">REC ●</span>
+            </div>
+            <div class="cctv-viewport garden">
+              <div class="cctv-sim-content">
+                <div class="housemate-dot" style="top: 45%; left: 35%;"><span>Prince</span></div>
+                <div class="housemate-dot" style="top: 35%; left: 65%;"><span>Abhishek</span></div>
+                <div class="cctv-subtext">Task setup underway</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 8: EVICTION WALL -->
+      <section class="tab-pane" id="tab-evicted">
+        <div class="evicted-header">
+          <h2><i class="fa-solid fa-door-open red-text"></i> WALL OF EVICTED HOUSEMATES</h2>
+          <p>Former contestants who have exited the Bigg Boss House.</p>
+        </div>
+
+        <div class="evicted-grid" id="evictedGrid">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- TAB 9: ACTIVITY LOG -->
+      <section class="tab-pane" id="tab-activity-log">
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-clock-rotate-left"></i> Full Command Center Audit Trail & Point History</h3>
+            <button class="btn-xs btn-secondary" onclick="clearActivityLog()">Clear Logs</button>
+          </div>
+          <div class="card-body">
+            <ul class="activity-feed-full" id="fullActivityLog">
+              <!-- Populated by JS -->
+            </ul>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODAL 1: ADD / EDIT CONTESTANT -->
+  <div class="modal-overlay" id="contestantModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="contestantModalTitle"><i class="fa-solid fa-user-plus"></i> Add New Contestant</h3>
+        <button class="modal-close" onclick="closeModal('contestantModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="contestantForm" onsubmit="handleSaveContestant(event)">
+          <input type="hidden" id="cEditId" value="">
+          <div class="form-group">
+            <label for="cName">Full Name *</label>
+            <input type="text" id="cName" required placeholder="e.g. Shehnaaz Gill">
+          </div>
+          <div class="form-group">
+            <label for="cTeam">Team Assignment *</label>
+            <select id="cTeam" required>
+              <option value="Team Alpha">Team Alpha</option>
+              <option value="Team Omega">Team Omega</option>
+              <option value="Team Renegade">Team Renegade</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="cRole">Persona / Bio Role</label>
+            <input type="text" id="cRole" placeholder="e.g. The Entertainer / Mastermind">
+          </div>
+          <div class="form-group">
+            <label for="cAvatar">Avatar Image URL (or leave blank for generated SVG)</label>
+            <input type="text" id="cAvatar" placeholder="https://...">
+          </div>
+          <div class="form-group">
+            <label for="cPoints">Starting Points</label>
+            <input type="number" id="cPoints" value="100">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeModal('contestantModal')">Cancel</button>
+            <button type="submit" class="btn-primary">Save Contestant</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: ADJUST POINTS MODAL -->
+  <div class="modal-overlay" id="pointsModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-coins gold-text"></i> Adjust Contestant Points</h3>
+        <button class="modal-close" onclick="closeModal('pointsModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="pContestantId">
+        <div class="target-contestant-summary" id="pTargetSummary">
+          <!-- Summary info filled by JS -->
+        </div>
+
+        <div class="form-group">
+          <label>Action Type:</label>
+          <div class="radio-group">
+            <label class="radio-label"><input type="radio" name="pType" value="ADD" checked> <span class="green-text">+ Add Points</span></label>
+            <label class="radio-label"><input type="radio" name="pType" value="DEDUCT"> <span class="red-text">- Deduct Points</span></label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="pAmount">Points Amount:</label>
+          <input type="number" id="pAmount" value="50" min="1" required>
+        </div>
+
+        <div class="form-group">
+          <label for="pReason">Reason / Log Justification:</label>
+          <input type="text" id="pReason" placeholder="e.g., Won Captaincy Challenge, Rule Violation..." required>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeModal('pointsModal')">Cancel</button>
+          <button type="button" class="btn-primary" onclick="submitPointAdjustment()">Confirm Adjustment</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: CONFESSION ROOM NOMINATION PROCESS -->
+  <div class="modal-overlay" id="nominationModal">
+    <div class="modal-box modal-lg">
+      <div class="modal-header border-red">
+        <h3><i class="fa-solid fa-gavel red-text"></i> Confession Room — Nomination Protocol</h3>
+        <button class="modal-close" onclick="closeModal('nominationModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">Select the Nominator housemate and choose who they are nominating for eviction with their justification.</p>
+        
+        <div class="form-group">
+          <label for="nomNominator">Nominator (Housemate entering Confession Room):</label>
+          <select id="nomNominator" onchange="updateNominationTargets()">
+            <!-- JS populated -->
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="nomTarget">Nominee (Contestant to be Nominated):</label>
+          <select id="nomTarget">
+            <!-- JS populated -->
+          </select>
+          <small class="help-text red-text">* Immune housemates and House Captain are protected from nomination.</small>
+        </div>
+
+        <div class="form-group">
+          <label for="nomReason">Nomination Reason:</label>
+          <textarea id="nomReason" rows="3" placeholder="Explain why this housemate should be put in the Danger Zone..." required></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeModal('nominationModal')">Cancel</button>
+          <button type="button" class="btn-primary glow-red" onclick="submitNominationVote()">Submit Nomination</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: CREATE / EDIT TASK -->
+  <div class="modal-overlay" id="taskModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-list-check gold-text"></i> Create Big Boss Task</h3>
+        <button class="modal-close" onclick="closeModal('taskModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="taskForm" onsubmit="handleSaveTask(event)">
+          <div class="form-group">
+            <label for="tTitle">Task Title *</label>
+            <input type="text" id="tTitle" required placeholder="e.g., Luxury Budget Vault Lockdown">
+          </div>
+          <div class="form-group">
+            <label for="tCategory">Category</label>
+            <select id="tCategory">
+              <option value="Captaincy">Captaincy Challenge</option>
+              <option value="Luxury Budget">Luxury Budget Task</option>
+              <option value="Immunity">Immunity Challenge</option>
+              <option value="Punishment">House Punishment</option>
+              <option value="Secret Mission">Secret Agent Mission</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="tDesc">Task Rules & Description</label>
+            <textarea id="tDesc" rows="3" placeholder="Explain task rules and victory conditions..."></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group col">
+              <label for="tReward">Reward Points (+)</label>
+              <input type="number" id="tReward" value="100">
+            </div>
+            <div class="form-group col">
+              <label for="tPenalty">Penalty Points (-)</label>
+              <input type="number" id="tPenalty" value="50">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="tTimer">Timer Duration (Minutes)</label>
+            <input type="number" id="tTimer" value="15" min="1">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeModal('taskModal')">Cancel</button>
+            <button type="submit" class="btn-primary">Create Task</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 5: DRAMATIC EVICTION CEREMONY MODAL -->
+  <div class="modal-overlay" id="evictionCeremonyModal">
+    <div class="modal-box modal-lg eviction-modal-content">
+      <div class="eviction-spotlight"></div>
+      <div class="modal-header border-red text-center">
+        <h2 class="red-text glow-text"><i class="fa-solid fa-door-open"></i> BIGG BOSS EVICTION CEREMONY</h2>
+      </div>
+      <div class="modal-body text-center">
+        <div class="eviction-avatar-container">
+          <img id="evictModalAvatar" src="" alt="Evicted Contestant" class="eviction-avatar-img">
+          <div class="evicted-stamp">EVICTED</div>
+        </div>
+
+        <h2 id="evictModalName" class="gold-text eviction-name">Contestant Name</h2>
+        <p id="evictModalTeam" class="team-badge-lg">Team Name</p>
+
+        <div class="eviction-stats-row">
+          <div><span>Final Score:</span> <strong id="evictModalPoints">0</strong> pts</div>
+          <div><span>House Rank:</span> <strong id="evictModalRank">#0</strong></div>
+        </div>
+
+        <div class="form-group text-left mt-3">
+          <label for="evictReason">Official Eviction Rationale:</label>
+          <input type="text" id="evictReason" value="Evicted based on public vote and Big Boss decision.">
+        </div>
+
+        <div class="eviction-action-btns">
+          <button class="btn-secondary" onclick="closeModal('evictionCeremonyModal')">Cancel Eviction</button>
+          <button class="btn-primary glow-red btn-lg" onclick="confirmExecuteEviction()">
+            <i class="fa-solid fa-gavel"></i> CONFIRM FINAL EVICTION & EXIT HOUSE
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DRAMATIC BIGG BOSS ANNOUNCEMENT OVERLAY BANNER -->
+  <div class="announcement-overlay" id="announcementOverlay">
+    <div class="announcement-banner">
+      <div class="announcement-eye"><i class="fa-solid fa-eye red-text"></i></div>
+      <h1 class="announcement-heading">BIGG BOSS ANNOUNCEMENT</h1>
+      <div class="announcement-body-text" id="announcementOverlayText">
+        "Bigg Boss chahte hain ki sabhi sadasya living area mein ekathha ho jayein!"
+      </div>
+      <button class="btn-primary" onclick="closeAnnouncementOverlay()">Acknowledge & Close</button>
+    </div>
+  </div>
+
+  <!-- Audio Synthesizer JavaScript -->
+  <script src="app.js"></script>
+</body>
+</html>
